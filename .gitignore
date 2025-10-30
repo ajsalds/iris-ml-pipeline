@@ -22,10 +22,10 @@ ENV/
 # ==========================
 # Data and Models
 # ==========================
-data/
+data/*
 !data/.gitkeep
 !data/*.dvc
-models/
+models/*
 !models/.gitkeep
 !models/*.dvc
 
