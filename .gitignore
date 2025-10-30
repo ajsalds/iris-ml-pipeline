@@ -1,0 +1,75 @@
+# ==========================
+# Python
+# ==========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.so
+*.egg-info/
+.eggs/
+*.log
+*.tmp
+*.swp
+.env
+.venv
+venv/
+env/
+ENV/
+.ipynb_checkpoints
+*.ipynb_checkpoints
+.DS_Store
+
+# ==========================
+# Data and Models
+# ==========================
+data/
+!data/.gitkeep
+!data/*.dvc
+models/
+!models/.gitkeep
+!models/*.dvc
+
+# ==========================
+# DVC
+# ==========================
+# DVC creates these cache and config files
+.dvc/tmp/
+.dvc/cache/
+.dvc/plots/
+.dvc.lock
+
+# ==========================
+# Environment & Dependencies
+# ==========================
+*.env
+*.yaml~
+requirements.txt~
+poetry.lock
+Pipfile.lock
+
+# ==========================
+# Testing / Reports
+# ==========================
+.pytest_cache/
+coverage.xml
+coverage/
+htmlcov/
+.cache/
+*.pytest_cache/
+*.coverage
+*.report
+report.md
+
+# ==========================
+# IDEs / Editors
+# ==========================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ==========================
+# CML / CI Artifacts
+# ==========================
+results.xml
+
