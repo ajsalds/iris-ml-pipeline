@@ -1,4 +1,4 @@
-RIS ML Pipeline
+IRIS ML Pipeline
 
 This repository contains a complete **end-to-end MLOps pipeline** for the classic **Iris classification dataset**.  
 It demonstrates how to integrate **data validation, model training, evaluation, and inference** into a version-controlled, test-driven, and automated CI/CD workflow using **DVC**, **Pytest**, **GitHub Actions**, and **CML**.
