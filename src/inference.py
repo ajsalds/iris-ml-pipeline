@@ -1,9 +1,8 @@
-import pickle
+import joblib
 import pandas as pd
 
 def predict_species(model_path: str, input_data):
-    with open(model_path, 'rb') as f:
-        model = pickle.load(f)
+    model = joblib.load(model_path)
     df = pd.DataFrame(input_data)
     preds = model.predict(df)
     return preds.tolist()

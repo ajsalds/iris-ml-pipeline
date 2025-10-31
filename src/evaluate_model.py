@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 import argparse
-import pickle
+import joblib
 import pandas as pd
 from sklearn.metrics import accuracy_score, classification_report
 
 def evaluate_model(model_path: str, data_path: str):
-    with open(model_path, 'rb') as f:
-        model = pickle.load(f)
+    model = joblib.load(model_path)
     df = pd.read_csv(data_path)
     X = df.drop('species', axis=1)
     y = df['species']
