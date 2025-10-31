@@ -1,26 +1,26 @@
-#!/usr/bin/env python
-import argparse
-import joblib
+import mlflow
+import mlflow.sklearn
 import pandas as pd
 from sklearn.metrics import accuracy_score, classification_report
 
-def evaluate_model(model_path: str, data_path: str):
-    model = joblib.load(model_path)
-    df = pd.read_csv(data_path)
-    X = df.drop('species', axis=1)
-    y = df['species']
+def evaluate_latest_registered(model_name="IrisModel"):
+    client = mlflow.tracking.MlflowClient()
+    # Get the latest registered version
+    versions = client.get_latest_versions(model_name)
+    latest_version = versions[-1].version  # pick the most recent one
+
+    model_uri = f"models:/{model_name}/{latest_version}"
+    model = mlflow.sklearn.load_model(model_uri)
+
+    df = pd.read_csv("data/iris.csv")
+    X = df.drop("species", axis=1)
+    y = df["species"]
+
     preds = model.predict(X)
     acc = accuracy_score(y, preds)
-    print(f"accuracy: {acc:.4f}")
+    print(f"Accuracy: {acc:.4f}")
     print(classification_report(y, preds))
     return acc
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("model", help="Path to model pickle")
-    parser.add_argument("data", help="Path to CSV data")
-    args = parser.parse_args()
-    evaluate_model(args.model, args.data)
-
 if __name__ == "__main__":
-    main()
+    evaluate_latest_registered()

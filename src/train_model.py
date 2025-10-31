@@ -1,40 +1,42 @@
-#!/usr/bin/env python
-import argparse
-import joblib
-import pandas as pd
-from sklearn.model_selection import train_test_split
+import mlflow
+import mlflow.sklearn
+from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
-
-def train_model(data_path: str, output_path: str):
-    # Load dataset
-    df = pd.read_csv(data_path)
-
-    # Split features and target
-    X = df.drop('species', axis=1)
-    y = df['species']
-
-    # Train/test split
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
-
-    # Train model
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    model.fit(X_train, y_train)
-
-    # Save with joblib
-    joblib.dump(model, output_path)
-    print(f"Model saved to {output_path}")
-
-    return model
+import pandas as pd
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("data", help="Path to CSV data")
-    parser.add_argument("out", help="Path to save model (.joblib)")
-    args = parser.parse_args()
+    df = pd.read_csv("data/iris.csv")
+    X = df.drop("species", axis=1)
+    y = df["species"]
 
-    train_model(args.data, args.out)
+    param_grid = {
+        "n_estimators": [50, 100, 200],
+        "max_depth": [3, 5, None]
+    }
+
+    rf = RandomForestClassifier(random_state=42)
+    grid_search = GridSearchCV(rf, param_grid, cv=3, scoring="accuracy")
+
+    with mlflow.start_run(run_name="rf-hyperparam-tuning") as run:
+        grid_search.fit(X, y)
+
+        best_model = grid_search.best_estimator_
+        best_params = grid_search.best_params_
+        best_score = grid_search.best_score_
+
+        mlflow.log_params(best_params)
+        mlflow.log_metric("cv_accuracy", best_score)
+
+        # Log model
+        mlflow.sklearn.log_model(best_model, "model")
+
+        # Register model in MLflow Model Registry
+        model_uri = f"runs:/{run.info.run_id}/model"
+        result = mlflow.register_model(model_uri, "IrisModel")
+
+        print(f"Model registered as: IrisModel (version {result.version})")
+        print(f"Best params: {best_params}")
+        print(f"Best score: {best_score:.4f}")
 
 if __name__ == "__main__":
     main()
