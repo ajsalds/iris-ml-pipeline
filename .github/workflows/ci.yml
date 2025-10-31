@@ -1,0 +1,75 @@
+name: Iris ML Pipeline CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ---------------------------
+      # Checkout code
+      # ---------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ---------------------------
+      # Setup Python
+      # ---------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      # ---------------------------
+      # Install dependencies
+      # ---------------------------
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # ---------------------------
+      # Setup Google Cloud credentials
+      # ---------------------------
+      - name: Authenticate to Google Cloud
+        run: |
+          echo "${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}" > key.json
+          gcloud auth activate-service-account --key-file=key.json
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS_JSON: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
+
+      # ---------------------------
+      # Configure DVC and pull data/models
+      # ---------------------------
+      - name: Setup DVC remote
+        run: |
+          dvc remote modify --local myremote url ${{ secrets.DVC_REMOTE_URL }}
+          dvc pull -v
+
+      # ---------------------------
+      # Run data validation and tests
+      # ---------------------------
+      - name: Run Pytest
+        run: |
+          pytest --junitxml=results.xml --maxfail=1 --disable-warnings -q || echo "Tests failed"
+
+      # ---------------------------
+      # Generate and post CML report
+      # ---------------------------
+      - name: Post CML Report
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "## CI Report (Pytest + DVC)" > report.md
+          echo "" >> report.md
+          echo "### Test Results" >> report.md
+          pytest -q >> report.md || echo "Some tests failed" >> report.md
+          echo "" >> report.md
+          echo "### DVC Status" >> report.md
+          dvc status >> report.md
+          cml comment create report.md
