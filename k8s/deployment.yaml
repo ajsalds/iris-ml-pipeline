@@ -21,7 +21,7 @@ spec:
         - containerPort: 8200
         env:
         - name: MODEL_PATH
-          value: "/app/models/iris_model.joblib"
+          value: "/app/models/model.joblib"
         readinessProbe:
           httpGet:
             path: /health
