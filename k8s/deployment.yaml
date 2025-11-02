@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: iris-api
-        image: us-central1-docker.pkg.dev/PROJECT_ID/iris-repo/iris-api:latest  # <-- overridden by GitHub Actions
+        image: us-central1-docker.pkg.dev/skilled-cargo-473704-p0/iris-repo/iris-api:latest  # <-- overridden by GitHub Actions
         ports:
         - containerPort: 8200
         env:
