@@ -1,4 +1,8 @@
-pandas
+fastapi
+uvicorn
 scikit-learn
+joblib
+numpy
+pandas
 pytest
 dvc_gs
