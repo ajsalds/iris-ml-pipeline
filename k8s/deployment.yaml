@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: iris-api
-        image: us-central1-docker.pkg.dev/skilled-cargo-473704-p0/iris-repo/iris-api:latest  # <-- overridden by GitHub Actions
+        image: PLACEHOLDER_IMAGE
         ports:
         - containerPort: 8200
         env:
@@ -24,13 +24,13 @@ spec:
           value: "/app/models/model.joblib"
         readinessProbe:
           httpGet:
-            path: /health
+            path: /
             port: 8200
           initialDelaySeconds: 5
           periodSeconds: 5
         livenessProbe:
           httpGet:
-            path: /health
+            path: /
             port: 8200
           initialDelaySeconds: 10
           periodSeconds: 10

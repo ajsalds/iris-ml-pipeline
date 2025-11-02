@@ -12,7 +12,7 @@ env:
   REGION: us-central1   # set your region
   REPOSITORY: ml-repo # artifact registry repo name
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-  CLUSTER_NAME: iris-cluster-gke
+  CLUSTER_NAME: iris-gke-cluster
   CLUSTER_LOCATION: us-central1  # zone or region depending on cluster
 
 jobs:
@@ -33,6 +33,11 @@ jobs:
           project_id: ${{ env.PROJECT_ID }}
           install_components: gke-gcloud-auth-plugin
 
+      - name: Pull data from DVC (GCS)
+        run: | 
+         pip install dvc_gs 
+         dvc pull -v
+
       - name: Configure Docker for Artifact Registry
         run: |
           gcloud --project=${{ env.PROJECT_ID }} auth configure-docker ${REGION}-docker.pkg.dev --quiet
@@ -42,6 +47,7 @@ jobs:
         with:
           context: .
           push: true
+          no-cache: true
           tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
 
       - name: Get GKE credentials
@@ -53,9 +59,11 @@ jobs:
 
       - name: Update k8s manifests image
         run: |
-          # replace placeholder image in k8s/deployment.yaml and apply
           IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          kubectl set image deployment/iris-api iris-api=$IMAGE --record || kubectl apply -f k8s/deployment.yaml
+          # Set actual image name in manifest
+          sed -i "s|PLACEHOLDER_IMAGE|$IMAGE|g" k8s/deployment.yaml
+          # Now, apply with correct image
+          kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
 
       - name: Wait for rollout
