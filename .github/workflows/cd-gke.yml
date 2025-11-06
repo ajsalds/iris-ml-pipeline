@@ -1,54 +1,59 @@
-name: CD to GKE
+name: CD to GKE (Iris API)
 
 on:
   push:
     branches:
-      - feature/cd-gke-iris  # or restrict to release tags
+      - feature/k8s-autoscaling-loadtest
   workflow_dispatch:
 
 env:
   IMAGE_NAME: iris-api
   IMAGE_TAG: ${{ github.sha }}
-  REGION: us-central1   # set your region
-  REPOSITORY: ml-repo # artifact registry repo name
+  REGION: us-central1-a
+  REPOSITORY: ml-repo
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   CLUSTER_NAME: iris-gke-cluster
-  CLUSTER_LOCATION: us-central1  # zone or region depending on cluster
+  CLUSTER_LOCATION: us-central1
+  DEPLOYMENT_NAME: iris-api
+  SERVICE_NAME: iris-api-lb
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Cloud auth
+      - name: Set up Google Cloud authentication
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}
 
-      - name: Configure gcloud
+      - name: Configure gcloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ env.PROJECT_ID }}
           install_components: gke-gcloud-auth-plugin
 
-      - name: Pull data from DVC (GCS)
-        run: | 
-         pip install dvc_gs 
-         dvc pull -v
+      - name: Pull model/data from DVC (Google Cloud Storage)
+        run: |
+          pip install dvc[gs]
+          dvc pull -v
 
       - name: Configure Docker for Artifact Registry
         run: |
-          gcloud --project=${{ env.PROJECT_ID }} auth configure-docker ${REGION}-docker.pkg.dev --quiet
+          gcloud --project=${{ env.PROJECT_ID }} auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
 
-      - name: Build and push image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
           no-cache: true
-          tags: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          tags: |
+            ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
 
       - name: Get GKE credentials
         uses: google-github-actions/get-gke-credentials@v1
@@ -57,18 +62,16 @@ jobs:
           location: ${{ env.CLUSTER_LOCATION }}
           project_id: ${{ env.PROJECT_ID }}
 
-      - name: Update k8s manifests image
+      - name: Update Kubernetes manifests and deploy
         run: |
           IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-          # Set actual image name in manifest
           sed -i "s|PLACEHOLDER_IMAGE|$IMAGE|g" k8s/deployment.yaml
-          # Now, apply with correct image
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
+          kubectl apply -f k8s/hpa.yaml
 
       - name: Wait for rollout
-        run: |
-          kubectl rollout status deployment/iris-api --timeout=120s
+        run: kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} --timeout=180s
 
       - name: Show service endpoint
-        run: kubectl get svc iris-api-lb -o wide
+        run: kubectl get svc ${{ env.SERVICE_NAME }} -o wide

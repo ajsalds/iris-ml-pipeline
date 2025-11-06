@@ -14,23 +14,35 @@ spec:
       labels:
         app: iris-api
     spec:
+      serviceAccountName: telemetry-access
       containers:
       - name: iris-api
         image: PLACEHOLDER_IMAGE
         ports:
         - containerPort: 8200
+
         env:
         - name: MODEL_PATH
           value: "/app/models/model.joblib"
+
         readinessProbe:
           httpGet:
-            path: /
+            path: /ready_check
             port: 8200
           initialDelaySeconds: 5
-          periodSeconds: 5
+          periodSeconds: 10
+
         livenessProbe:
           httpGet:
-            path: /
+            path: /live_check
             port: 8200
-          initialDelaySeconds: 10
-          periodSeconds: 10
+          initialDelaySeconds: 15
+          periodSeconds: 20
+
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"

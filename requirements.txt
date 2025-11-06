@@ -6,3 +6,4 @@ numpy
 pandas
 pytest
 dvc_gs
+opentelemetry-exporter-gcp-trace
