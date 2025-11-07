@@ -9,11 +9,11 @@ on:
 env:
   IMAGE_NAME: iris-api
   IMAGE_TAG: ${{ github.sha }}
-  REGION: us-central1-a
+  REGION: us-central1
   REPOSITORY: ml-repo
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   CLUSTER_NAME: iris-gke-cluster
-  CLUSTER_LOCATION: us-central1
+  CLUSTER_LOCATION: us-central1-a
   DEPLOYMENT_NAME: iris-api
   SERVICE_NAME: iris-api-lb
 
