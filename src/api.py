@@ -32,11 +32,7 @@ logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
 
 formatter = logging.Formatter(
-    json.dumps({
-        "severity": "%(levelname)s",
-        "message": "%(message)s",
-        "timestamp": "%(asctime)s"
-    })
+    '{"severity": "%(levelname)s", "message": "%(message)s", "timestamp": "%(asctime)s"}'
 )
 handler.setFormatter(formatter)
 logger.addHandler(handler)
