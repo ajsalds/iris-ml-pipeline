@@ -76,7 +76,7 @@ jobs:
       - name: Show service endpoint
         run: kubectl get svc ${{ env.SERVICE_NAME }} -o wide
 
-            - name: Stress test API (CML)
+      - name: Stress test API (CML)
         uses: iterative/setup-cml@v2
 
       - name: Run wrk load test
