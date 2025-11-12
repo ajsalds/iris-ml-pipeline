@@ -68,7 +68,7 @@ jobs:
           sed -i "s|PLACEHOLDER_IMAGE|$IMAGE|g" k8s/deployment.yaml
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
-          # kubectl apply -f k8s/hpa.yaml
+          kubectl apply -f k8s/hpa.yaml
 
       - name: Wait for rollout
         run: kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} --timeout=180s
@@ -91,9 +91,11 @@ jobs:
           wrk -t4 -c2000 -d180s --latency -s post.lua http://$ENDPOINT/predict > wrk_result.txt
 
       - name: Report results with CML
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "## Stress Test Results" > report.md
           echo "\`\`\`" >> report.md
           cat wrk_result.txt >> report.md
           echo "\`\`\`" >> report.md
-          cml comment create report.md
+          cml comment create --publish report.md
