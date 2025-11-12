@@ -88,7 +88,7 @@ jobs:
           sudo apt-get install -y wrk
 
           # Run load test
-          wrk -t4 -c1001 -d180s --latency -s post.lua http://$ENDPOINT/predict > wrk_result.txt
+          wrk -t4 -c2000 -d180s --latency -s post.lua http://$ENDPOINT/predict > wrk_result.txt
 
       - name: Report results with CML
         run: |
