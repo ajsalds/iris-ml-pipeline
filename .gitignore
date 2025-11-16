@@ -28,6 +28,8 @@ data/*
 models/*
 !models/.gitkeep
 !models/*.dvc
+mlruns/
+mlartifacts/
 
 # ==========================
 # DVC
