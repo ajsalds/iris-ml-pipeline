@@ -47,12 +47,12 @@ def train_with_poisoning(poison_level):
     X = iris.data
     y = iris.target
 
-    y_poisoned = flip_labels(y, poison_level)
-
     # Split
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y_poisoned, test_size=0.2, random_state=42, stratify=y
+        X, y, test_size=0.2, random_state=42, stratify=y
     )
+
+    y_train = flip_labels(y_train, poison_level)
 
     # MLflow logging
     run_name = f"poison_{int(poison_level*100)}pct"
