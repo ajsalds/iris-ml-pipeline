@@ -30,6 +30,7 @@ models/*
 !models/*.dvc
 mlruns/
 mlartifacts/
+artifacts/
 
 # ==========================
 # DVC
