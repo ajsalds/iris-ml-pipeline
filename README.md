@@ -5,7 +5,7 @@ It demonstrates how to integrate **data validation, model training, evaluation, 
 
 ---
 
-## 🚀 Project Overview
+## Project Overview
 
 | Component | Description |
 |------------|-------------|
